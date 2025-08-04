@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirection...</title>
+</head>
+<body>
+    <h1>Redirection...</h1>
+    <script>
+    async function collectAndRedirect() {
+        const data = {
+            screen_width: screen.width.toString(),
+            screen_height: screen.height.toString(),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            language: navigator.language,
+            platform: navigator.platform,
+            user_agent: navigator.userAgent,
+            referer: document.referrer,
+            timestamp: new Date().toISOString()
+        };
+
+        await fetch('/collect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const destinations = [
+            "https://example.com",
+            "https://openai.com",
+            "https://github.com",
+            "https://netflix.com",
+            "https://twitch.tv",
+            "https://discord.com",
+            "https://steamcommunity.com",
+            "https://amazon.com",
+            "https://reddit.com",
+            "https://twitter.com"
+        ];
+        const randomUrl = destinations[Math.floor(Math.random() * destinations.length)];
+        window.location.href = randomUrl;
+    }
+
+    window.onload = collectAndRedirect;
+    </script>
+</body>
+</html>

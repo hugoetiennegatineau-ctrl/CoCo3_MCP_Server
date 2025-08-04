@@ -1,24 +1,40 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8" />
-    <title>Dashboard - Visites enrichies</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; font-size: 0.9em; }
-        th, td { border: 1px solid #aaa; padding: 6px; }
-        th { background: #222; color: white; }
-        tr:nth-child(even) { background: #eee; }
-        .logout { float: right; }
-    </style>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script>
+    async function refresh() {
+        const res = await fetch('/api/visits');
+        const visits = await res.json();
+        const table = document.getElementById('visits');
+        table.innerHTML = '';
+
+        visits.forEach(v => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${v.timestamp}</td>
+                <td>${v.ip}</td>
+                <td>${v.city || '-'}</td>
+                <td>${v.region || '-'}</td>
+                <td>${v.country || '-'}</td>
+                <td>${v.language}</td>
+                <td>${v.platform}</td>
+                <td>${v.user_agent}</td>
+                <td>${v.screen}</td>
+                <td>${v.timezone}</td>
+                <td>${v.referer}</td>
+            `;
+            table.appendChild(row);
+        });
+    }
+    setInterval(refresh, 2000);
+    window.onload = refresh;
+    </script>
 </head>
 <body>
-    <h1>Dashboard des visites enrichies</h1>
-    <a href="{{ url_for('logout') }}" class="logout">Déconnexion</a>
-    <p><a href="{{ url_for('export') }}">Exporter les données CSV</a></p>
-
-    <table>
+    <h1>Dernières visites</h1>
+    <table border="1">
         <thead>
             <tr>
                 <th>Horodatage</th>
@@ -26,120 +42,16 @@
                 <th>Ville</th>
                 <th>Région</th>
                 <th>Pays</th>
-                <th>User Agent</th>
-                <th>Accept-Language</th>
+                <th>Langue</th>
+                <th>Plateforme</th>
+                <th>User-Agent</th>
+                <th>Écran</th>
+                <th>Fuseau</th>
                 <th>Referer</th>
-                <th>Méthode</th>
-                <th>URL</th>
-                <th>Résolution écran</th>
-                <th>Heure locale client</th>
-                <th>Navigateur précis</th>
             </tr>
         </thead>
-        <tbody>
-            {% for v in visits %}
-            <tr>
-                <td>{{ v.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}</td>
-                <td>{{ v.ip }}</td>
-                <td>{{ v.city or '-' }}</td>
-                <td>{{ v.region or '-' }}</td>
-                <td>{{ v.country or '-' }}</td>
-                <td>{{ v.user_agent }}</td>
-                <td>{{ v.accept_language or '-' }}</td>
-                <td>{{ v.referer or '-' }}</td>
-                <td>{{ v.method }}</td>
-                <td>{{ v.full_url }}</td>
-                <td>{{ v.screen_resolution or '-' }}</td>
-                <td>{{ v.local_time or '-' }}</td>
-                <td>{{ v.precise_browser or '-' }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+        <tbody id="visits"></tbody>
     </table>
-
-    <h2>Statistiques graphiques (dernières 200 visites)</h2>
-    <canvas id="visitsChart" width="900" height="300"></canvas>
-
-    <script>
-    let chart;
-
-    function buildChart(data) {
-        const ctx = document.getElementById('visitsChart').getContext('2d');
-
-        const countryCounts = {};
-        data.forEach(v => {
-            const c = v.country || "Inconnu";
-            countryCounts[c] = (countryCounts[c] || 0) + 1;
-        });
-
-        const labels = Object.keys(countryCounts);
-        const counts = Object.values(countryCounts);
-
-        if (chart) {
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = counts;
-            chart.update();
-        } else {
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Nombre de visites par pays',
-                        data: counts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true, precision:0 } },
-                    responsive: true
-                }
-            });
-        }
-    }
-
-    function updateTable(data) {
-        const tbody = document.querySelector("table tbody");
-        tbody.innerHTML = "";
-
-        data.forEach(v => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${v.timestamp}</td>
-                <td>${v.ip}</td>
-                <td>${v.city || '-'}</td>
-                <td>${v.region || '-'}</td>
-                <td>${v.country || '-'}</td>
-                <td>${v.user_agent}</td>
-                <td>${v.accept_language || '-'}</td>
-                <td>${v.referer || '-'}</td>
-                <td>${v.method}</td>
-                <td>${v.full_url}</td>
-                <td>${v.screen_resolution || '-'}</td>
-                <td>${v.local_time || '-'}</td>
-                <td>${v.precise_browser || '-'}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    async function fetchData() {
-        try {
-            const res = await fetch("/api/visits");
-            if (!res.ok) throw new Error("Erreur de chargement");
-            const json = await res.json();
-            updateTable(json.visits);
-            buildChart(json.visits);
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    // Initial fetch + refresh toutes les 2 secondes
-    fetchData();
-    setInterval(fetchData, 2000);
-    </script>
 </body>
 </html>
+
