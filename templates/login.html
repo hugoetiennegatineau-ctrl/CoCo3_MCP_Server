@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 100px auto; max-width: 350px; }
+        form { display: flex; flex-direction: column; }
+        input { margin-bottom: 15px; padding: 10px; font-size: 1em; }
+        button { padding: 10px; font-size: 1em; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .error { color: red; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <h2>Connexion</h2>
+    {% with messages = get_flashed_messages(category_filter=["danger"]) %}
+      {% if messages %}
+        <div class="error">{{ messages[0] }}</div>
+      {% endif %}
+    {% endwith %}
+    <form method="post">
+        <input type="text" name="username" placeholder="Utilisateur" required autofocus />
+        <input type="password" name="password" placeholder="Mot de passe" required />
+        <button type="submit">Se connecter</button>
+    </form>
+</body>
+</html>
